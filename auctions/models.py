@@ -30,9 +30,14 @@ class Auction(models.Model):
     title = models.CharField(max_length=100)
     text = models.TextField(default = "Write a description here.")
     category = models.CharField(max_length = 3, choices = CATEGORIES, default = AUTO)
-    url = models.URLField(blank=True)
-    min_bid = models.DecimalField(max_digits=10, decimal_places=2, default= 0.00)
+    url = models.URLField(null=True, blank=True)
+    min_bid = models.DecimalField(max_digits=10, decimal_places=2)
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.title}"
+
 
 class Bid(models.Model):
     

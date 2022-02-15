@@ -8,7 +8,7 @@ from .models import User, Auction
 from .forms import NewListingForm
 
 def index(request):
-    return render(request, "auctions/index.html")
+    return render(request, "auctions/index.html", {"activeListings": Auction.objects.all() })
 
 
 def login_view(request):
@@ -73,15 +73,16 @@ def create_listing(request):
         if form.is_valid():
 
             title = form.cleaned_data["title"]
-            description = form.cleaned_data["description"]
+            text = form.cleaned_data["text"]
             category = form.cleaned_data["category"]
             url = form.cleaned_data["url"]
-            min_bid = form.cleaned_data["url"]
+            min_bid = form.cleaned_data["min_bid"]
 
             auction = Auction(title = title,
                 user = User.objects.get(pk=request.user.id),     
-                description = description,
+                text = text,
                 category = category,
+                min_bid = min_bid,
                 url = url)
 
             auction.save()
