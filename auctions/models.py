@@ -31,7 +31,7 @@ class Auction(models.Model):
     text = models.TextField(default = "Write a description here.")
     category = models.CharField(max_length = 3, choices = CATEGORIES, default = AUTO)
     url = models.URLField(blank=True)
-    min_bid = models.DecimalField(max_digits=10, decimal_places=2)
+    min_bid = models.DecimalField(max_digits=10, decimal_places=2, default= 0.00)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Bid(models.Model):

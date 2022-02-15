@@ -78,19 +78,18 @@ def create_listing(request):
             url = form.cleaned_data["url"]
             min_bid = form.cleaned_data["url"]
 
-            auction = Auction(
-                user = User.objects.get(pk=request.user.id),
-                title = title,
+            auction = Auction(title = title,
+                user = User.objects.get(pk=request.user.id),     
                 description = description,
                 category = category,
-                url = url
-            )
+                url = url)
+
             auction.save()
-        else:
-            return render(request, "auctions/create_listing.html", {
-                "form": form
-            })
+    #If method == GET return default form
+    else:
+        return render(request, "auctions/create-listing.html", {
+            "form": NewListingForm() })
 
-
-    return render(request, "auctions/create-listing.html", {form: NewListingForm()})
+    ##Where to redirect after?
+    return render(request, "auctions/create-listing.html", {"form": NewListingForm()})
 
