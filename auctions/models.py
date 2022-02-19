@@ -1,6 +1,7 @@
 from sre_parse import CATEGORIES
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from datetime import datetime
 
 
 class User(AbstractUser):
@@ -42,9 +43,9 @@ class Auction(models.Model):
 class Bid(models.Model):
     
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateTimeField()
-    user = models.ForeignKey(User, on_delete= models.CASCADE)
-    auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
+    date = models.DateTimeField(default=datetime.now, blank=True, null= True)
+    user = models.ForeignKey(User, on_delete= models.CASCADE, blank=True , null= True)
+    auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True , null= True)
 
 class Comment(models.Model):
 
@@ -52,3 +53,8 @@ class Comment(models.Model):
     date = models.DateTimeField()
     user = models.ForeignKey(User, on_delete= models.CASCADE)
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
+
+class Watchlist(models.Model):
+
+    user = models.ForeignKey(User, on_delete= models.CASCADE , related_name="watchlist")
+    auction = models.ForeignKey(Auction, on_delete= models.CASCADE)

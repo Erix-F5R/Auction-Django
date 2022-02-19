@@ -4,8 +4,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Auction
-from .forms import NewListingForm
+from .models import User, Auction, Bid, Watchlist
+from .forms import NewBidForm, NewListingForm
 
 def index(request):
     return render(request, "auctions/index.html", {"activeListings": Auction.objects.all() })
@@ -62,9 +62,7 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
-def create_listing(request):
-
-    
+def create_listing(request):    
 
     if request.method == 'POST':
 
@@ -93,4 +91,42 @@ def create_listing(request):
 
     ##Where to redirect after?
     return render(request, "auctions/create-listing.html", {"form": NewListingForm()})
+
+def auction(request, auction_id):
+
+    auction = Auction.objects.get(id=auction_id)
+
+    if request.method == "POST":
+
+        if request.POST.get("submit") == "Bid":
+
+            form = NewBidForm(request.POST)
+
+            if form.is_valid():
+
+                amount = form.cleaned_data['amount']
+
+                bid = Bid( amount = amount,
+                       user = User.objects.get(id=request.user.id),
+                       auction = Auction.objects.get(pk=auction_id) )
+                bid.save()
+            return render(request, "auctions/auction.html", { "auction": auction , "form": NewBidForm() })
+        
+        elif request.POST.get("submit") == "Watchlist":
+            user = User.objects.get(id=request.user.id)
+            
+            if not user.watchlist.filter(auction = auction):
+                watchlist = Watchlist(user = User.objects.get(id=request.user.id),
+                       auction = Auction.objects.get(pk=auction_id) )
+                watchlist.save()
+
+            else:
+                 user.watchlist.filter(auction = auction).delete()
+
+            return render(request, "auctions/auction.html", { "auction": auction , "form": NewBidForm() })
+    else:
+        return render(request, "auctions/auction.html", { "auction": auction , "form": NewBidForm() })
+
+
+
 
