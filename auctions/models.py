@@ -33,6 +33,7 @@ class Auction(models.Model):
     category = models.CharField(max_length = 3, choices = CATEGORIES, default = AUTO)
     url = models.URLField(null=True, blank=True)
     min_bid = models.DecimalField(max_digits=10, decimal_places=2)
+    start_time = models.DateTimeField(default=datetime.now, blank=True, null= True)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
@@ -50,7 +51,7 @@ class Bid(models.Model):
 class Comment(models.Model):
 
     text = models.CharField(max_length=100)
-    date = models.DateTimeField()
+    date = models.DateTimeField(default=datetime.now, blank=True, null= True)
     user = models.ForeignKey(User, on_delete= models.CASCADE)
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
 
@@ -58,3 +59,6 @@ class Watchlist(models.Model):
 
     user = models.ForeignKey(User, on_delete= models.CASCADE , related_name="watchlist")
     auction = models.ForeignKey(Auction, on_delete= models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user}: {self.auction}"

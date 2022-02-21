@@ -130,3 +130,22 @@ def auction(request, auction_id):
 
 
 
+def watchlist(request):
+    
+    user = User.objects.get(id=request.user.id)
+
+    watchlist = Watchlist.objects.filter(user = user)
+    
+    return render(request, "auctions/watchlist.html", {"watchlist": watchlist})
+
+def categories(request):
+
+    categories = Auction.CATEGORIES 
+
+    return render(request, "auctions/categories.html", {"categories":categories})
+
+def category(request,category):
+
+    items = Auction.objects.filter(category = category)
+
+    return render(request,"auctions/category.html", {"category": category, "items": items} ) 
