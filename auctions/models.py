@@ -48,6 +48,9 @@ class Bid(models.Model):
     user = models.ForeignKey(User, on_delete= models.CASCADE, blank=True , null= True)
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True , null= True)
 
+    def __str__(self):
+        return f"{self.auction}: ${self.amount}"
+
 class Comment(models.Model):
 
     text = models.CharField(max_length=100)

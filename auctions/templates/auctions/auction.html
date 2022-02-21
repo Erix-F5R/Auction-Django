@@ -2,7 +2,9 @@
 
 {% block body %}
 {{ auction }}
-{{ auction.min_bid }}
+${{ auction.min_bid }}
+
+Current Bid: ${{max_bid}}
 
 <form action="" method="post">
     {% csrf_token %}
@@ -12,10 +14,15 @@
     <input type="submit" name="submit" value="Bid">
 </form>
 
+{{error}}
+
 <form action="" method ="post">
     {% csrf_token %}
     
     <input type="submit" name = "submit" value="Watchlist">
 </form>
+
+{{ user }}
+{{ auction.user }}
 
 {% endblock %}

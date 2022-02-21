@@ -1,14 +1,17 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.db.models import Max
 
 from .models import User, Auction, Bid, Watchlist
 from .forms import NewBidForm, NewListingForm
 
+
 def index(request):
-    return render(request, "auctions/index.html", {"activeListings": Auction.objects.all() })
+    return render(request, "auctions/index.html", {"activeListings": Auction.objects.all()})
 
 
 def login_view(request):
@@ -62,7 +65,8 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
-def create_listing(request):    
+@login_required(login_url='/login')
+def create_listing(request):
 
     if request.method == 'POST':
 
@@ -76,25 +80,32 @@ def create_listing(request):
             url = form.cleaned_data["url"]
             min_bid = form.cleaned_data["min_bid"]
 
-            auction = Auction(title = title,
-                user = User.objects.get(pk=request.user.id),     
-                text = text,
-                category = category,
-                min_bid = min_bid,
-                url = url)
+            auction = Auction(title=title,
+                              user=User.objects.get(pk=request.user.id),
+                              text=text,
+                              category=category,
+                              min_bid=min_bid,
+                              url=url)
 
             auction.save()
-    #If method == GET return default form
+    # If method == GET return default form
     else:
         return render(request, "auctions/create-listing.html", {
-            "form": NewListingForm() })
+            "form": NewListingForm()})
 
-    ##Where to redirect after?
+    # Where to redirect after?
     return render(request, "auctions/create-listing.html", {"form": NewListingForm()})
 
+@login_required(login_url='/login')
 def auction(request, auction_id):
 
     auction = Auction.objects.get(id=auction_id)
+
+    ## if not bids???
+    try:
+        max_bid = float( Bid.objects.filter(auction = auction).aggregate(Max('amount'))['amount__max'])
+    except:
+        max_bid = auction.min_bid
 
     if request.method == "POST":
 
@@ -103,49 +114,52 @@ def auction(request, auction_id):
             form = NewBidForm(request.POST)
 
             if form.is_valid():
-
                 amount = form.cleaned_data['amount']
 
-                bid = Bid( amount = amount,
-                       user = User.objects.get(id=request.user.id),
-                       auction = Auction.objects.get(pk=auction_id) )
+                if amount <= max_bid or amount <= auction.min_bid :
+                    return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error":'Error, invaild bid', "max_bid": max_bid})
+
+                bid = Bid(amount=amount,
+                          user=User.objects.get(id=request.user.id),
+                          auction=Auction.objects.get(pk=auction_id))
                 bid.save()
-            return render(request, "auctions/auction.html", { "auction": auction , "form": NewBidForm() })
-        
+            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '', "max_bid": max_bid})
+
         elif request.POST.get("submit") == "Watchlist":
             user = User.objects.get(id=request.user.id)
-            
-            if not user.watchlist.filter(auction = auction):
-                watchlist = Watchlist(user = User.objects.get(id=request.user.id),
-                       auction = Auction.objects.get(pk=auction_id) )
+
+            if not user.watchlist.filter(auction=auction):
+                watchlist = Watchlist(user=User.objects.get(id=request.user.id),
+                                      auction=Auction.objects.get(pk=auction_id))
                 watchlist.save()
 
             else:
-                 user.watchlist.filter(auction = auction).delete()
+                user.watchlist.filter(auction=auction).delete()
 
-            return render(request, "auctions/auction.html", { "auction": auction , "form": NewBidForm() })
+            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '' , "max_bid": max_bid})
     else:
-        return render(request, "auctions/auction.html", { "auction": auction , "form": NewBidForm() })
+        return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '', "max_bid": max_bid})
 
 
-
-
+@login_required(login_url='/login')
 def watchlist(request):
-    
+
     user = User.objects.get(id=request.user.id)
 
-    watchlist = Watchlist.objects.filter(user = user)
-    
+    watchlist = Watchlist.objects.filter(user=user)
+
     return render(request, "auctions/watchlist.html", {"watchlist": watchlist})
+
 
 def categories(request):
 
-    categories = Auction.CATEGORIES 
+    categories = Auction.CATEGORIES
 
-    return render(request, "auctions/categories.html", {"categories":categories})
+    return render(request, "auctions/categories.html", {"categories": categories})
 
-def category(request,category):
 
-    items = Auction.objects.filter(category = category)
+def category(request, category):
 
-    return render(request,"auctions/category.html", {"category": category, "items": items} ) 
+    items = Auction.objects.filter(category=category)
+
+    return render(request, "auctions/category.html", {"category": category, "items": items})
