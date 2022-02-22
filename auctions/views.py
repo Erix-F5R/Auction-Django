@@ -6,8 +6,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Max
 
-from .models import User, Auction, Bid, Watchlist
-from .forms import NewBidForm, NewListingForm
+from .models import User, Auction, Bid, Watchlist, Comment
+from .forms import NewBidForm, NewListingForm, NewCommentForm
 
 
 def index(request):
@@ -65,6 +65,7 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
+
 @login_required(login_url='/login')
 def create_listing(request):
 
@@ -96,22 +97,17 @@ def create_listing(request):
     # Where to redirect after?
     return render(request, "auctions/create-listing.html", {"form": NewListingForm()})
 
+
 @login_required(login_url='/login')
 def auction(request, auction_id):
 
     auction = Auction.objects.get(id=auction_id)
-    highest_bidder = Bid.objects.filter(auction = auction).last()
-    
+    highest_bidder = Bid.objects.filter(auction=auction).last()
+
     try:
-        highest_bid = Bid.objects.filter(auction = auction).last()
+        highest_bid = Bid.objects.filter(auction=auction).last()
     except:
         highest_bid = auction.min_bid
-
-    ## if no bids
-    ##try:
-    ##    max_bid = float( Bid.objects.filter(auction = auction).aggregate(Max('amount'))['amount__max'])
-    ##except:
-    ##    max_bid = auction.min_bid
 
     if request.method == "POST":
 
@@ -122,8 +118,8 @@ def auction(request, auction_id):
             if form.is_valid():
                 amount = form.cleaned_data['amount']
 
-                if amount <= max_bid or amount <= auction.min_bid :
-                    return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error":'Error, invaild bid', "highest_bid": highest_bid})
+                if amount <= highest_bid.amount or amount <= auction.min_bid:
+                    return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": 'Error, invaild bid', "highest_bid": highest_bid})
 
                 bid = Bid(amount=amount,
                           user=User.objects.get(id=request.user.id),
@@ -142,17 +138,32 @@ def auction(request, auction_id):
             else:
                 user.watchlist.filter(auction=auction).delete()
 
-            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '' , "highest_bid": highest_bid})
+            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '', "highest_bid": highest_bid})
 
         elif request.POST.get("submit") == "Close Auction":
 
             auction.closed = True
             auction.save()
 
-            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '' , "highest_bid": highest_bid})
+            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '', "highest_bid": highest_bid})
 
+        elif request.POST.get("submit") == "Comment":
+            
+            form = NewCommentForm(request.POST)
+            print("$$$$11111")
+            if form.is_valid():
+                text = form.cleaned_data['text']
+                comment = Comment(text = text, user=User.objects.get(id=request.user.id),
+                          auction=Auction.objects.get(pk=auction_id))
+                comment.save()
+                print("$$$$22222")
+            
+            print("$$$$3333")
+            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "comment": NewCommentForm(), "error": '', "highest_bid": highest_bid})
+
+                          
     else:
-        return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '', "highest_bid": highest_bid})
+        return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "comment": NewCommentForm(), "error": '', "highest_bid": highest_bid})
 
 
 @login_required(login_url='/login')

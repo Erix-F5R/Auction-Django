@@ -50,7 +50,7 @@ class Bid(models.Model):
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE, blank=True , null= True)
 
     def __str__(self):
-        return f"{self.auction}: ${self.amount}"
+        return f"Bid on {self.auction} of ${self.amount}"
 
 class Comment(models.Model):
 
@@ -58,6 +58,9 @@ class Comment(models.Model):
     date = models.DateTimeField(default=datetime.now, blank=True, null= True)
     user = models.ForeignKey(User, on_delete= models.CASCADE)
     auction = models.ForeignKey(Auction, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"Comment by{self.user} on {self.auction}"
 
 class Watchlist(models.Model):
 

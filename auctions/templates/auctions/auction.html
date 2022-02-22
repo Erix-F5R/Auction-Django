@@ -21,16 +21,16 @@ Current Bid: ${{highest_bid.amount}}
 
 {{error}}
 
-<form action="" method ="post">
-    {% csrf_token %}   
-    <input type="submit" name = "submit" value="Watchlist">
+<form action="" method="post">
+    {% csrf_token %}
+    <input type="submit" name="submit" value="Watchlist">
 </form>
 
 
 {% if user == auction.user %}
-<form action="" method ="post">
-    {% csrf_token %}   
-    <input type="submit" name = "submit" value="Close Auction">
+<form action="" method="post">
+    {% csrf_token %}
+    <input type="submit" name="submit" value="Close Auction">
 </form>
 {% endif %}
 
@@ -39,11 +39,19 @@ Current Bid: ${{highest_bid.amount}}
 <h1>Auction Closed!</h1>
 {% if highest_bid.user == user%}
 
-    <h2>You have won the auction for ${{highest_bid.amount}}!</h2>
+<h2>You have won the auction for ${{highest_bid.amount}}!</h2>
 
 {%endif%}
 
+
 {%endif%}
 
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ comment }}
+    </table>
+    <input type="submit" name="submit" value="Comment">
+</form>
 
 {% endblock %}
