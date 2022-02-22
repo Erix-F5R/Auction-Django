@@ -34,6 +34,7 @@ class Auction(models.Model):
     url = models.URLField(null=True, blank=True)
     min_bid = models.DecimalField(max_digits=10, decimal_places=2)
     start_time = models.DateTimeField(default=datetime.now, blank=True, null= True)
+    closed = models.BooleanField(default=False)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 

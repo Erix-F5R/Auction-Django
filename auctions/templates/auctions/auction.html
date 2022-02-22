@@ -4,7 +4,12 @@
 {{ auction }}
 ${{ auction.min_bid }}
 
-Current Bid: ${{max_bid}}
+Current Bid: ${{highest_bid.amount}}
+
+{%if not auction.closed%}
+
+
+
 
 <form action="" method="post">
     {% csrf_token %}
@@ -17,12 +22,28 @@ Current Bid: ${{max_bid}}
 {{error}}
 
 <form action="" method ="post">
-    {% csrf_token %}
-    
+    {% csrf_token %}   
     <input type="submit" name = "submit" value="Watchlist">
 </form>
 
-{{ user }}
-{{ auction.user }}
+
+{% if user == auction.user %}
+<form action="" method ="post">
+    {% csrf_token %}   
+    <input type="submit" name = "submit" value="Close Auction">
+</form>
+{% endif %}
+
+{%else%}
+
+<h1>Auction Closed!</h1>
+{% if highest_bid.user == user%}
+
+    <h2>You have won the auction for ${{highest_bid.amount}}!</h2>
+
+{%endif%}
+
+{%endif%}
+
 
 {% endblock %}
