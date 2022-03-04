@@ -5,13 +5,27 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Max
+import itertools
 
 from .models import User, Auction, Bid, Watchlist, Comment
 from .forms import NewBidForm, NewListingForm, NewCommentForm
 
 
 def index(request):
-    return render(request, "auctions/index.html", {"activeListings": Auction.objects.all()})
+
+    activeListings = Auction.objects.all()
+    
+    listingTuples = []
+        
+
+    for first, second in  zip(*[iter(activeListings)]*2):
+        listingTuples.append((first,second))
+
+    if len(activeListings) % 2 != 0:
+        listingTuples.append((activeListings.last(),))
+        
+    print(listingTuples)
+    return render(request, "auctions/index.html", {"activeListings": listingTuples})
 
 
 def login_view(request):

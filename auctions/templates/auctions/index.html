@@ -4,16 +4,22 @@
     <h2>Active Listings</h2>
 
   
-    <ul>
-    {% for listing in activeListings %}
-        <li> 
-            <h2> <a href="{% url 'auction' listing.id %}"> {{ listing.title }} </a> </h2>
-            {{ listing.text }}
-            {{ listing.min_bid }}
-            
-        </li>
+    
+    {% for tuple in activeListings %}
+    <div class="row" style="border: solid blue">
+    {% for listing in tuple%}
+         
+        
+            <div class="col-lg-6" style="border: solid green">
+            <h2> <a href="{% url 'auction' listing.id %}"> {{ listing }} </a> </h2>
+
+            </div>
+        
+        
     {% endfor %}
-    </ul>
+    </div>
+    {% endfor %}
+    
         
     
 {% endblock %}
