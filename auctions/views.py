@@ -102,12 +102,18 @@ def create_listing(request):
 def auction(request, auction_id):
 
     auction = Auction.objects.get(id=auction_id)
-    highest_bidder = Bid.objects.filter(auction=auction).last()
+    comments = Comment.objects.filter(auction = auction)
 
     try:
         highest_bid = Bid.objects.filter(auction=auction).last()
+        if highest_bid == None:
+            raise ValueError
     except:
-        highest_bid = auction.min_bid
+        highest_bid = Bid(amount=auction.min_bid,
+                          user=User.objects.get(id=request.user.id),
+                          auction=auction)
+        highest_bid.save()
+        
 
     if request.method == "POST":
 
@@ -118,14 +124,16 @@ def auction(request, auction_id):
             if form.is_valid():
                 amount = form.cleaned_data['amount']
 
+                
+
                 if amount <= highest_bid.amount or amount <= auction.min_bid:
-                    return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": 'Error, invaild bid', "highest_bid": highest_bid})
+                    
+                    return render(request, "auctions/auction.html", {"auction": auction, "comments": comments, "form": NewBidForm(), "error": 'Error, invaild bid', "highest_bid": highest_bid})
 
                 bid = Bid(amount=amount,
                           user=User.objects.get(id=request.user.id),
                           auction=Auction.objects.get(pk=auction_id))
                 bid.save()
-            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '', "highest_bid": highest_bid})
 
         elif request.POST.get("submit") == "Watchlist":
             user = User.objects.get(id=request.user.id)
@@ -138,32 +146,29 @@ def auction(request, auction_id):
             else:
                 user.watchlist.filter(auction=auction).delete()
 
-            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '', "highest_bid": highest_bid})
 
         elif request.POST.get("submit") == "Close Auction":
 
             auction.closed = True
             auction.save()
 
-            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "error": '', "highest_bid": highest_bid})
 
         elif request.POST.get("submit") == "Comment":
             
             form = NewCommentForm(request.POST)
-            print("$$$$11111")
+            
             if form.is_valid():
                 text = form.cleaned_data['text']
                 comment = Comment(text = text, user=User.objects.get(id=request.user.id),
                           auction=Auction.objects.get(pk=auction_id))
                 comment.save()
-                print("$$$$22222")
+                
             
-            print("$$$$3333")
-            return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "comment": NewCommentForm(), "error": '', "highest_bid": highest_bid})
+            
 
                           
-    else:
-        return render(request, "auctions/auction.html", {"auction": auction, "form": NewBidForm(), "comment": NewCommentForm(), "error": '', "highest_bid": highest_bid})
+    
+    return render(request, "auctions/auction.html", {"auction": auction,"comments": comments, "form": NewBidForm(), "comment": NewCommentForm(), "error": '', "highest_bid": highest_bid})
 
 
 @login_required(login_url='/login')
